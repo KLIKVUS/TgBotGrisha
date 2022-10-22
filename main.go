@@ -132,25 +132,23 @@ func Update(lastId int) int {
 			return SendMsg(lastId, ev, "Штоуж")
 		}
 
-		splitedTxt := strings.Split(txt, ",")
-		splitedTxt1 := strings.Split(txt, " ")
-		maybeNewName := splitedTxt1[len(splitedTxt1)-1]
-		// Когдя ты "слишком умный" для regexp-a
+		splitedTxt := strings.Split(txt, ", ")
 		if splitedTxt[0] == myName {
-			switch splitedTxt[1] {
-			case " танцуй!":
+			switch strings.Split(splitedTxt[1], ": ")[0] {
+			case "танцуй!":
 				return SendMsg(lastId, ev, "Ты эбобо??")
-			case " шути!":
+			case "шути!":
 				return SendMsg(lastId, ev, "Танцуют два негра и один упал.")
-
-			// Гений 1000lvl
-			case " теперь ты " + maybeNewName:
-				myName = maybeNewName
-				return SendMsg(lastId, ev, "Ну получаетс я "+maybeNewName)
-			default:
-				return SendMsg(lastId, ev, "Не понимаю((")
+			case "теперь ты":
+				newName := strings.Split(splitedTxt[1], ": ")[1]
+				if newName != "" {
+					myName = newName
+					return SendMsg(lastId, ev, fmt.Sprintln("Ну получаетс я", myName))
+				}
 			}
 		}
+
+		return SendMsg(lastId, ev, "Не понимаю((")
 	}
 
 	return lastId
