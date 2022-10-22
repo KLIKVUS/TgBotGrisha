@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,7 +16,7 @@ import (
 
 var myName string = "Гриша"
 
-const apiUrl string = "https://api.telegram.org/" + "bot5794246977:AAE2ab_pZ97tyY1AoNHhjFqQIS0bg3ffYuA"
+const tgApiUrl string = "https://api.telegram.org/" + "bot5794246977:AAE2ab_pZ97tyY1AoNHhjFqQIS0bg3ffYuA"
 
 func main() {
 	go UpdateLoop()
@@ -76,10 +77,24 @@ type Result struct {
 	Abilities []string `json:"abilities"`
 }
 
+type WeatherResponse struct {
+	Weather []Weather `json:"weather"`
+	Main    Main      `json:"main"`
+}
+type Weather struct {
+	Description string `json:"description"`
+}
+type Main struct {
+	Temp_Min float32 `json:"temp_min"`
+	Temp_Max float32 `json:"temp_max"`
+}
+
 func Handler(w http.ResponseWriter, r *http.Request) {
 	var res MainStruct
 
-	resp, err := http.Get(apiUrl + "/getMe")
+	Ping()
+
+	resp, err := http.Get(tgApiUrl + "/getMe")
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +127,7 @@ func UpdateLoop() {
 }
 
 func Update(lastId int) int {
-	raw, err := http.Get(apiUrl + "/getUpdates?offset=" + strconv.Itoa(lastId))
+	raw, err := http.Get(tgApiUrl + "/getUpdates?offset=" + strconv.Itoa(lastId))
 	if err != nil {
 		panic(err)
 	}
@@ -136,9 +151,37 @@ func Update(lastId int) int {
 		if splitedTxt[0] == myName {
 			switch strings.Split(splitedTxt[1], ": ")[0] {
 			case "танцуй!":
-				return SendMsg(lastId, ev, "Ты эбобо??")
+				return SendMsg(lastId, ev, "Ты эбобо??"+strconv.Itoa(ev.Message.Chat.Id))
 			case "шути!":
 				return SendMsg(lastId, ev, "Танцуют два негра и один упал.")
+			case "дай погоду!":
+				res, err := http.Get("https://api.openweathermap.org/data/2.5/weather?lat=55.751244&lon=37.618423&lang=ru&appid=1759cf4bcb07551210be50cfe44c5c06")
+				if err != nil {
+					panic(err)
+				}
+
+				body, _ := io.ReadAll(res.Body)
+
+				var v WeatherResponse
+				err = json.Unmarshal(body, &v)
+				if err != nil {
+					panic(err)
+				}
+
+				weather := v.Weather[0]
+				weatherMessage := fmt.Sprintf("Погода: \n%s", weather.Description)
+
+				temp := v.Main
+				tempMessage := fmt.Sprintf("Температура: \nmax: %f, min: %f", (temp.Temp_Max-32)*5/9, (temp.Temp_Min-32)*5/9)
+
+				return SendMsg(lastId, ev, weatherMessage+"\n\n"+tempMessage)
+			case "придумай число до":
+				num, err := strconv.Atoi(strings.Split(splitedTxt[1], ": ")[1])
+				if err != nil {
+					panic(err)
+				}
+				randNum := strconv.Itoa(rand.Intn(num))
+				return SendMsg(lastId, ev, randNum)
 			case "теперь ты":
 				newName := strings.Split(splitedTxt[1], ": ")[1]
 				if newName != "" {
@@ -163,10 +206,23 @@ func SendMsg(lastId int, ev UpdateStruct, text string) int {
 
 	bytemsg, _ := json.Marshal(txtmsg)
 
-	_, err := http.Post(apiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+	_, err := http.Post(tgApiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
 	if err != nil {
 		fmt.Println(err)
 		return lastId
 	}
 	return ev.Id + 1
+}
+
+func Ping() {
+	txtmsg := SendMessage{
+		Chat_Id: 911850117,
+		Text:    "Страницу посетили.",
+	}
+
+	bytemsg, _ := json.Marshal(txtmsg)
+	_, err := http.Post(tgApiUrl+"/sendMessage", "application/json", bytes.NewReader(bytemsg))
+	if err != nil {
+		fmt.Println(err)
+	}
 }
