@@ -142,7 +142,7 @@ func Update(lastId int) int {
 	}
 
 	if len(v.Result) > 0 {
-		var myFirstName = "Жопер" //GetName()
+		var myFirstName = GetName()
 
 		ev := v.Result[len(v.Result)-1]
 		// fmt.Println(ev.Message)
