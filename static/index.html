@@ -1,12 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main</title>
+    <title>Admin</title>
 </head>
+
 <body>
-    <h1>Hello, World!!</h1>
+    <textarea id="output"></textarea>
+    <p></p>
+    <button id="name" type="button" onclick="getName()">Bot's current name</button>
+    <button id="eventId" onclick="getEventId()">Get current event Id</button>
+
+    <script>
+        function getName() {
+            fetch("/botName").then((res) => res.text())
+            .then((data) => document.getElementById("output").innerText = data)
+        }
+
+        function getEventId() {
+
+        }
+    </script>
 </body>
+
 </html>
