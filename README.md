@@ -1,6 +1,6 @@
 # TgBotGrisha
 
-Ну получается бот для тг [Гриша](https://t.me/GrishaNewTest_bot).
+Ну получается бот для тг [Гриша](https://t.me/ZhoperXXX_bot).
 
 ____
 
